@@ -22,6 +22,7 @@ class BaiduSubmit_Plugin implements Typecho_Plugin_Interface
 
         //添加网站地图功能
         Helper::addRoute('baidu_sitemap', '/baidu_sitemap.xml', 'BaiduSubmit_Action', 'sitemap');
+		Helper::addRoute('baidu_sitemap_tag', '/baidu_sitemap_tag.xml', 'BaiduSubmit_Action', 'sitemap_tag');
         Helper::addPanel(1, 'BaiduSubmit/Logs.php', '百度结构化日志', '百度结构化日志', 'administrator');
         Helper::addRoute('baidu_sitemap_advanced', __TYPECHO_ADMIN_DIR__ . 'baidu_sitemap/advanced', 'BaiduSubmit_Action', 'send_all');
         return $msg . '请进入设置填写接口调用地址';

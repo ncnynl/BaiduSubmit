@@ -1,3 +1,12 @@
+#增加 By nightcat 2016-05-11
+
+#增加Tag的sitemap,负载优化，设置只读取最近的访问次数最少的1万条记录
+
+#负载优化,修改stemap文章的条数为一万
+
+
+
+
 # BaiduSubmit
  A typecho plugin for baidu SEO
 

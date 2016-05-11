@@ -115,7 +115,8 @@ class BaiduSubmit_Action extends Typecho_Widget implements Widget_Interface_Do
             ->where('table.contents.status = ?', 'publish')
             ->where('table.contents.created < ?', $options->gmtTime)
             ->where('table.contents.type = ?', 'post')
-            ->order('table.contents.created', Typecho_Db::SORT_DESC));
+            ->order('table.contents.created', Typecho_Db::SORT_DESC)
+			->limit(10000));
 
         //changefreq -> always、hourly、daily、weekly、monthly、yearly、never
         //priority -> 0.0优先级最低、1.0最高
@@ -161,6 +162,62 @@ class BaiduSubmit_Action extends Typecho_Widget implements Widget_Interface_Do
         }
         echo "</urlset>";
     }
+	
+	/*Add sitemap for tag modified by nightcat 2016-05-11*/
+	public static function sitemap_tag()
+	{
+        $db = Typecho_Db::get();
+        $options = Helper::options();
+
+        $bot_list = array(
+            'baidu' => '百度',
+            'google' => '谷歌',
+            'sogou' => '搜狗',
+            'youdao' => '有道',
+            'soso' => '搜搜',
+            'bing' => '必应',
+            'yahoo' => '雅虎',
+            '360' => '360搜索'
+        );
+
+        $useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
+        foreach ($bot_list as $k => $v) {
+            if (strpos($useragent, ($k . '')) !== false) {
+                $log['subject'] = $v;
+                $log['action'] = '请求';
+                $log['object'] = 'sitemaptag';
+                $log['result'] = '成功';
+                self::logger($log);
+            }
+        }
+
+        $articles = $db->fetchAll($db->select()->from('table.metas')
+            ->where('table.metas.type = ?', 'tag')
+            ->order('table.metas.count', Typecho_Db::SORT_ASC)
+			->limit(10000));
+			
+        //changefreq -> always、hourly、daily、weekly、monthly、yearly、never
+        //priority -> 0.0优先级最低、1.0最高
+        header("Content-Type: application/xml");
+        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        echo "<urlset>\n";
+        foreach ($articles AS $article) {
+            $type = $article['type'];
+			$article['modified'] = time();
+            $article['slug'] = urlencode($article['slug']);
+            $routeExists = (NULL != Typecho_Router::get($type));
+            $article['pathinfo'] = $routeExists ? Typecho_Router::url($type, $article) : '#';
+            $article['permalink'] = Typecho_Common::url($article['pathinfo'], $options->index);
+
+            echo "\t<url>\n";
+            echo "\t\t<loc>" . $article['permalink'] . "</loc>\n";
+            echo "\t\t<lastmod>" . date('Y-m-d', $article['modified']) . "</lastmod>\n";
+            echo "\t\t<changefreq>daily</changefreq>\n";
+            echo "\t\t<priority>0.8</priority>\n";
+            echo "\t</url>\n";
+        }
+        echo "</urlset>";		
+	}
 
     public static function logger($data)
     {
